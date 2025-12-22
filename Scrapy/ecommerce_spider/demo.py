@@ -1,4 +1,6 @@
 # demo.py
+import os
+
 from scrapy.crawler import CrawlerProcess
 from ecommerce_spider.spiders.shopify_crawl import ShopifyCrawlFastSpider
 
@@ -27,8 +29,8 @@ def run_batch(sites: list[dict]):
             "ecommerce_spider.pipelines.PandasExporter": 300,
         },
         "PANDAS_FIELDS": [
-            "SKU", "Name", "Categories", "Regular price", "cf_opingts",
-            "Description", "Images", "自定义分类", "原站域名", "分布网站识别", "语言"
+            "SKU", "Name", "Description", "Regular price", "Categories",
+            "Images", "cf_opingts","自定义分类", "原站域名", "分布网站识别", "语言"
         ],
     })
 
@@ -36,9 +38,14 @@ def run_batch(sites: list[dict]):
         domain = site["domain"]
         category = site.get("category", "未知分类")
 
-        site_name = domain.split("//")[-1].replace(".", "_")
-        export_file = f"{site_name}.xlsx"
+        site_name = domain.split("//")[-1].replace(".", "_").replace("/", "")
 
+        # ✅ category 作为目录名（可自行再清洗）
+        category_dir = category.strip()
+        category_dir = category_dir.replace("/", "_")
+        # ✅ 创建目录（已存在不会报错）
+        os.makedirs(category_dir, exist_ok=True)
+        export_file = os.path.join(category_dir, f"{site_name}.xlsx")
         process.crawl(
             ShopifyCrawlFastSpider,
             domain=domain,
@@ -47,16 +54,22 @@ def run_batch(sites: list[dict]):
         )
 
     process.start()
-    print("\n全部站点爬取完成\n")
-
 
 if __name__ == "__main__":
     sites = [
-        # {"domain": "https://shibuya-stationery.com", "category": "办公用品"},
-        # {"domain": "https://ewartwoods.com", "category": "办公用品"},
-        {"domain": "https://www.lagirlusa.com", "category": "艺术与娱乐"},
-        # {"domain": "https://www.bando.com", "category": "办公用品"},
-        # {"domain": "https://tasklinesupplies.com", "category": "办公用品"},
+        # {"domain":"https://www.corston.eu", "category": "五金/硬件"},
+        # {"domain":"https://nyhardware.com", "category": "五金/硬件"},
+
+        # {"domain":"https://www.levenger.com", "category": "办公用品"},
+        # {"domain":"https://riflepaperco.com", "category": "办公用品"},
+        # {"domain":"https://shophorne.com", "category": "家具"},
+
+        # {"domain":"https://www.mcgeeandco.com", "category": "家居与园艺"},
+        # {"domain":"https://www.bludot.com", "category": "家居与园艺"},
+        # {"domain":"https://redhead-drinking-creations.myshopify.com", "category": "厨房/餐厅"},
+        # {"domain":"https://market99.com", "category": "厨房/餐厅"},
+        # {"domain":"https://superdokan.com", "category": "厨房/餐厅"},
+        {"domain":"https://myborosil.com/", "category": "厨房/餐厅"},
     ]
 
     run_batch(sites)

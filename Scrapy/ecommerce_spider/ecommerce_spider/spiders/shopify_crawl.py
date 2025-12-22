@@ -61,11 +61,17 @@ class ShopifyCrawlFastSpider(scrapy.Spider):
         self.limit = 250
 
         self.shop_currency = "USD"
-        self.exchange_rates = {"USD": 1.0}
+        self.exchange_rates = {}
+        base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        if os.path.exists("exchange_rates.json"):
-            with open("exchange_rates.json", "r", encoding="utf-8") as f:
+        rate_path = os.path.join(base_dir, "exchange_rates.json")
+        self.logger.info(rate_path)
+        if os.path.exists(rate_path):
+            with open(rate_path, "r", encoding="utf-8") as f:
                 self.exchange_rates.update(json.load(f))
+                self.logger.info(f"已加载汇率文件: {rate_path}")
+        else:
+            self.logger.warning(f"未找到汇率文件: {rate_path}")
 
     # ---------- helpers ----------
 
@@ -97,8 +103,11 @@ class ShopifyCrawlFastSpider(scrapy.Spider):
     def parse_meta(self, response):
         try:
             self.shop_currency = json.loads(response.text).get("currency", "USD").upper()
+            self.logger.info(f"币种={self.shop_currency}, 汇率={self.exchange_rates.get(self.shop_currency)}")
+
         except Exception:
             self.shop_currency = "USD"
+            self.logger.info(f"币种={self.shop_currency}, 汇率={self.exchange_rates.get(self.shop_currency)}")
 
         yield from self.request_page()
 
@@ -125,7 +134,9 @@ class ShopifyCrawlFastSpider(scrapy.Spider):
         for product in products:
             title = product.get("title", "")
             desc = product.get("body_html", "")
-            category = product.get("product_type") or "Others"
+            category = product.get("product_type")
+            if category is None:
+                category = "Others"
 
             images = product.get("images") or []
             variant_image = images[0].get("src", "") if images else ""
@@ -139,18 +150,19 @@ class ShopifyCrawlFastSpider(scrapy.Spider):
                 ).replace("Default Title", "").strip("-")
 
                 try:
-                    price = float(variant.get("price") or 0) * rate
+                    price = float(variant.get("price") or 0,) * rate
+                    usd_price = round(price, 2)
                 except Exception:
                     price = 0.0
 
                 yield {
                     "SKU": sku,
                     "Name": f"{title} {option_title}".replace("Default Title", "").strip(),
-                    "Categories": category,
-                    "Regular price": price,
-                    "cf_opingts": "",
                     "Description": desc,
+                    "Regular price": usd_price,
+                    "Categories": category,
                     "Images": variant_image,
+                    "cf_opingts": "",
                     "自定义分类": self.custom_category,
                     "原站域名": self.domain.split("//")[1],
                     "分布网站识别": 0,
