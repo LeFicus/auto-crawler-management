@@ -15,8 +15,8 @@ def run_batch(sites: list[dict]):
 
     process = CrawlerProcess(settings={
         # ==== 性能（极速版推荐）====
-        "CONCURRENT_REQUESTS": 256,
-        "CONCURRENT_REQUESTS_PER_DOMAIN": 32,
+        "CONCURRENT_REQUESTS": 32,
+        "CONCURRENT_REQUESTS_PER_DOMAIN": 8,
         "DOWNLOAD_DELAY": 0,
         "AUTOTHROTTLE_ENABLED": False,
         "RETRY_TIMES": 3,
@@ -59,6 +59,8 @@ if __name__ == "__main__":
     sites = [
         # {"domain":"https://www.corston.eu", "category": "五金/硬件"},
         # {"domain":"https://nyhardware.com", "category": "五金/硬件"},
+        {"domain":"https://antiquehardwaresupply.com", "category": "五金/硬件"},
+
 
         # {"domain":"https://www.levenger.com", "category": "办公用品"},
         # {"domain":"https://riflepaperco.com", "category": "办公用品"},
@@ -69,7 +71,32 @@ if __name__ == "__main__":
         # {"domain":"https://redhead-drinking-creations.myshopify.com", "category": "厨房/餐厅"},
         # {"domain":"https://market99.com", "category": "厨房/餐厅"},
         # {"domain":"https://superdokan.com", "category": "厨房/餐厅"},
-        {"domain":"https://myborosil.com/", "category": "厨房/餐厅"},
+        # {"domain":"https://myborosil.com", "category": "厨房/餐厅"},
+        # {"domain":"https://notaboringbox.co.uk", "category": "厨房/餐厅"},
+        # {"domain":"https://online.citysuper.com.hk", "category": "厨房/餐厅"},
+        # {"domain":"https://ekobo.co", "category": "厨房/餐厅"},
+        # {"domain":"https://www.lakeside.com", "category": "厨房/餐厅"},
+        # {"domain":"https://shopinthekitchen.com", "category": "厨房/餐厅"},
+        # {"domain":"https://thehomeedit.com", "category": "厨房/餐厅"},
+        # {"domain":"https://www.hawkinsnewyork.com", "category": "厨房/餐厅"},
+        # {"domain":"https://www.wellappointedhouse.com", "category": "厨房/餐厅"},
+
+
+
+        # {"domain":"https://plankhardware.com", "category": "五金/硬件"},
+        # {"domain":"https://www.stronghandtools.com", "category": "五金/硬件"},
+        # {"domain":"https://shop.moen.com", "category": "五金/硬件"},
+
+        # {"domain": "https://anglersoutfitter.com.sg", "category": "钓鱼"},
+
+
+
+        # {"domain": "https://hk.francfranc.net", "category": "家居与园艺"},
+        # {"domain": "https://standardtextilehome.com", "category": "家居与园艺"},
+        # {"domain": "https://standardtextilehome.com", "category": "家居与园艺"},
+
+
+
     ]
 
     run_batch(sites)
