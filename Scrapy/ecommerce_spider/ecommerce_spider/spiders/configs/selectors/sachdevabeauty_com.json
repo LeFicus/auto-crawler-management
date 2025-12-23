@@ -1,0 +1,17 @@
+{
+  "title": "//h1[contains(@class, 'product_title') or contains(@class, 'entry-title')]/text()",
+
+  "price": "//p[@class='price']//ins//span[@class='woocommerce-Price-amount amount']//bdi/text() | //p[@class='price']//span[@class='woocommerce-Price-amount amount']//bdi/text() | //meta[@itemprop='price']/@content",
+
+  "price_regex": "[\\d.,]+",
+
+  "description": "//div[contains(@class, 'woocommerce-product-details__short-description')]//text() | //div[@id='tab-description']//text() | //div[@itemprop='description']//text()",
+
+  "images": "//div[contains(@class, 'woocommerce-product-gallery__image')]//img/@data-src | //div[contains(@class, 'woocommerce-product-gallery__image')]//img/@src | //figure[contains(@class, 'woocommerce-product-gallery__wrapper')]//img/@data-large_image | //meta[@property='og:image']/@content",
+
+  "currency": "INR",
+
+  "breadcrumb_links": "//nav[contains(@class, 'woocommerce-breadcrumb')]//a/text() | //div[contains(@class, 'breadcrumbs')]//a/text() | //a[contains(@href, '/product-category/')]/text()",
+
+  "breadcrumb_last": "//nav[contains(@class, 'woocommerce-breadcrumb')]//current-item/text() | //nav[contains(@class, 'woocommerce-breadcrumb')]//a[last()]/text()"
+}

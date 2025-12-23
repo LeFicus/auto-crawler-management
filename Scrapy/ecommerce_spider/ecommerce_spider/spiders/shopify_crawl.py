@@ -145,15 +145,14 @@ class ShopifyCrawlFastSpider(scrapy.Spider):
                 option_title = self.build_variant_title(variant).replace("None",'')
                 sku = (
                     f"{self.category_prefix()}-"
-                    f"{self.product_code(variant.get('id'))}-"
-                    f"{option_title}"
-                ).replace("Default Title", "").strip("-")
+                    f"{self.product_code(variant.get('id'))}"
+                )
 
                 try:
                     price = float(variant.get("price") or 0,) * rate
                     usd_price = round(price, 2)
                 except Exception:
-                    price = 0.0
+                    usd_price = 0.0
 
                 yield {
                     "SKU": sku,
