@@ -5,7 +5,7 @@ import scrapy
 from datetime import datetime
 from urllib.parse import urlparse
 import re
-
+from bs4 import BeautifulSoup
 class WooCrawlSpider(scrapy.Spider):
     name = "woo_crawl"
 
@@ -54,21 +54,17 @@ class WooCrawlSpider(scrapy.Spider):
         self.seen_product_urls = set()  # 商品URL去重
 
         # 新增：加载汇率文件
-        self.exchange_rates = {"USD": 1.0}  # 默认至少有 USD
+        self.exchange_rates = {}  # 默认至少有 USD
         base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        rates_path = os.path.join(base_dir, "exchange_rates.json")
+        rate_path = os.path.join(base_dir, "exchange_rates.json")
 
-        if os.path.exists(rates_path):
-            try:
-                with open(rates_path, 'r', encoding='utf-8') as f:
-                    loaded_rates = json.load(f)
-                    self.exchange_rates.update(loaded_rates)
-                self.logger.info(f"成功加载汇率文件：{rates_path}，共 {len(self.exchange_rates)} 种货币")
-            except Exception as e:
-                self.logger.error(f"加载汇率文件失败：{e}，使用默认 USD=1.0")
+        if os.path.exists(rate_path):
+            with open(rate_path, "r", encoding="utf-8") as f:
+                self.exchange_rates.update(json.load(f))
+                self.logger.info(f"已加载汇率文件: {rate_path}")
         else:
-            self.logger.warning(f"未找到汇率文件 {rates_path}，价格将不进行转换（假设 USD）")
+            self.logger.warning(f"未找到汇率文件: {rate_path}")
 
         # 加载 selectors 配置
         self.selectors = {
@@ -138,7 +134,9 @@ class WooCrawlSpider(scrapy.Spider):
                 self.logger.info(f"加载自定义 selectors 配置：{config_file}")
             except Exception as e:
                 self.logger.error(f"加载配置失败：{e}")
-
+        else:
+            self.logger.warning(f"当前工作目录: {os.getcwd()}")
+            self.logger.warning(f"蜘蛛文件目录: {os.path.dirname(os.path.abspath(__file__))}")
     # 修复：使用Scrapy 2.13+推荐的start()方法（替代start_requests）
     async def start(self):
         yield scrapy.Request(
@@ -152,9 +150,7 @@ class WooCrawlSpider(scrapy.Spider):
         if response.status == 200:
             try:
                 # 解析站点地图索引，提取商品站点地图链接
-                sitemap_links = response.xpath(
-                    '//*[local-name()="sitemap"]/*[local-name()="loc"][contains(text(), "product-")]/text()'
-                ).extract()
+                sitemap_links = response.xpath(self.selectors["site_map"]).extract()
 
                 if sitemap_links:
                     self.logger.info(f"找到 {len(sitemap_links)} 个商品站点地图链接")
@@ -202,6 +198,7 @@ class WooCrawlSpider(scrapy.Spider):
 
     def product_code(self, value, length: int = 6) -> str:
         return hashlib.md5(str(value or "").encode("utf-8")).hexdigest()[:length].upper()
+
     def parse_product_detail(self, response):
         """解析商品详情页，提取核心信息并生成Item"""
         if response.status != 200:
@@ -216,9 +213,20 @@ class WooCrawlSpider(scrapy.Spider):
             original_sku = response.xpath(self.selectors["sku"]).get(default="").strip()
 
             # Description：必须用 getall() 合并多个文本节点
-            description_texts = response.xpath(self.selectors["description"]).getall()
-            description = " ".join([t.strip() for t in description_texts if t.strip()])
+            description = response.xpath(self.selectors["description"]).get(default="").strip()
+            if description:
+                soup = BeautifulSoup(description, 'html.parser')
+                # 移除图片、视频、iframe等
+                for tag in soup.find_all(['img', 'video', 'iframe', 'script', 'style']):
+                    tag.decompose()
+                # 可选：移除空段落
+                for p in soup.find_all(['p', 'div']):
+                    if not p.get_text(strip=True):
+                        p.decompose()
 
+                description = str(soup)  # 转回字符串，干净的HTML
+            else:
+                description = ""
             # 主图
             images = response.xpath(self.selectors["images"]).get(default="").strip()
 
@@ -293,9 +301,10 @@ class WooCrawlSpider(scrapy.Spider):
                     except ValueError:
                         pass
 
-            currency = self.selectors.get("currency", "USD")
+            currency = self.selectors.get("currency")
             rate = self.exchange_rates.get(currency, 1.0)
             price_clean = f"{price_num * rate:.2f}"
+            self.logger.info(f"当前货币:汇率 {currency}:{rate} - 原价格：{price_num} - 汇率转换后的价格{price_clean}")
 
             # ====== 组装 Item ======
             item = {

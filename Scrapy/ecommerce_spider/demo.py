@@ -69,7 +69,8 @@ if __name__ == "__main__":
         # {"domain":"https://redhead-drinking-creations.myshopify.com", "category": "厨房/餐厅"},
         # {"domain":"https://market99.com", "category": "厨房/餐厅"},
         # {"domain":"https://superdokan.com", "category": "厨房/餐厅"},
-        {"domain":"https://myborosil.com/", "category": "厨房/餐厅"},
+        # {"domain":"https://myborosil.com/", "category": "厨房/餐厅"},
+        {"domain":"https://koreanskincare.nl", "category": "美妆"},
     ]
 
     run_batch(sites)

@@ -1,64 +1,3 @@
-# # demo.py   ← 直接双击或 python demo.py 就能跑
-# from scrapy.crawler import CrawlerProcess
-# from ecommerce_spider.spiders.woo_crawl import WooCrawlSpider
-#
-#
-# def run(domain: str, category: str = "未知分类"):
-#     if not domain or not domain.startswith("http"):
-#         print("请传入正确的域名，例如：https://bazaarica.com/sitemaps/en-us/sitemap.xml")
-#         return
-#
-#     # 动态生成文件名
-#     site_name = domain.split("//")[-1].replace(".", "_")
-#     export_file = f"{site_name}.xlsx"
-#
-#     process = CrawlerProcess(settings={
-#         # ==== 关键：所有动态配置都在这里一次性传进去 ====
-#         # "PANDAS_EXPORT_FILE": export_file,
-#         # "PANDAS_FIELDS": [
-#         #     "SKU", "Name", "Categories", "Regular price", "cf_opingts",
-#         #     "Description", "Images", "自定义分类", "原站域名", "分布网站识别", "语言"
-#         # ],
-#
-#         # ==== 性能 + 防封 ====
-#         "CONCURRENT_REQUESTS": 1,
-#         "DOWNLOAD_DELAY": 3,
-#         "RANDOMIZE_DOWNLOAD_DELAY": True,
-#         "AUTOTHROTTLE_ENABLED": True,
-#         "AUTOTHROTTLE_START_DELAY": 0.5,
-#         "AUTOTHROTTLE_MAX_DELAY": 8,
-#         "RETRY_TIMES": 5,
-#         "LOG_LEVEL": "INFO",
-#         "ROBOTSTXT_OBEY": False,
-#         "HTTPCACHE_ENABLED": False,        # 缓存重复请求
-#         "FEEDS": {},
-#
-#         # ==== 中间件 & 管道 ====
-#         "ITEM_PIPELINES": {
-#             'ecommerce_spider.pipelines.PandasExporter': 300,
-#         },
-#         "DOWNLOADER_MIDDLEWARES": {
-#             'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-#             'ecommerce_spider.middlewares.CustomUserAgentMiddleware': 400,
-#         },
-#     })
-#
-#     process.crawl(WooCrawlSpider, domain=domain, category=category)
-#     process.start()          # 阻塞直到爬完
-#     print(f"\n完成！文件已保存：{export_file}\n")
-#
-#
-# if __name__ == "__main__":
-#     # 这里改成你想爬的站
-#
-#     # run("https://shop.wakilni.com/wp-sitemap.xml", "艺术与娱乐")
-#     run("https://sachdevabeauty.com/sitemaps.xml", "艺术与娱乐")
-#     # run("https://www.allbeauty.om/sitemapindex-product.xml.gz", "艺术与娱乐")
-
-
-
-
-# demo.py   ← 直接双击或 python demo.py 就能跑
 from scrapy.crawler import CrawlerProcess
 from ecommerce_spider.spiders.woo_crawl import WooCrawlSpider
 
@@ -72,36 +11,6 @@ def run(domain: str, category: str = "未知分类", config_file: str = None):
     site_name = domain.split("//")[-1].replace(".", "_")
     export_file = f"{site_name}.xlsx"
 
-    # process = CrawlerProcess(settings={
-    #     # ==== 关键：所有动态配置都在这里一次性传进去 ====
-    #     "PANDAS_EXPORT_FILE": export_file,
-    #     "PANDAS_FIELDS": [
-    #         "SKU", "Name", "Categories", "Regular price", "cf_opingts",
-    #         "Description", "Images", "自定义分类", "原站域名", "分布网站识别", "语言"
-    #     ],
-    #
-    #     # ==== 性能 + 防封 ====
-    #     "CONCURRENT_REQUESTS": 1,
-    #     "DOWNLOAD_DELAY": 0.1,
-    #     "RANDOMIZE_DOWNLOAD_DELAY": True,
-    #     "AUTOTHROTTLE_ENABLED": True,
-    #     "AUTOTHROTTLE_START_DELAY": 0.5,
-    #     "AUTOTHROTTLE_MAX_DELAY": 8,
-    #     "RETRY_TIMES": 5,
-    #     "LOG_LEVEL": "INFO",
-    #     "ROBOTSTXT_OBEY": False,
-    #     "HTTPCACHE_ENABLED": False,        # 缓存重复请求
-    #     "FEEDS": {},
-    #
-    #     # ==== 中间件 & 管道 ====
-    #     "ITEM_PIPELINES": {
-    #         'ecommerce_spider.pipelines.PandasExporter': 300,
-    #     },
-    #     "DOWNLOADER_MIDDLEWARES": {
-    #         'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-    #         'ecommerce_spider.middlewares.CustomUserAgentMiddleware': 400,
-    #     },
-    # })
     process = CrawlerProcess(settings={
         "PANDAS_EXPORT_FILE": export_file,
         "PANDAS_FIELDS": [
@@ -109,8 +18,8 @@ def run(domain: str, category: str = "未知分类", config_file: str = None):
             "Description", "Images", "自定义分类", "原站域名", "分布网站识别", "语言"
         ],
         # ==== 核心提速设置 ====
-        "CONCURRENT_REQUESTS": 32,  # 全局并发请求数，建议 16-64
-        "CONCURRENT_REQUESTS_PER_DOMAIN": 8,  # 每个域名最大并发（防单个站点被封）
+        "CONCURRENT_REQUESTS": 16,  # 全局并发请求数，建议 16-64
+        "CONCURRENT_REQUESTS_PER_DOMAIN": 4,  # 每个域名最大并发（防单个站点被封）
         "CONCURRENT_REQUESTS_PER_IP": 0,  # 通常保持 0，除非你用代理
 
         "DOWNLOAD_DELAY": 0.5,  # 基础延迟降到 0.5 秒
@@ -145,7 +54,7 @@ def run(domain: str, category: str = "未知分类", config_file: str = None):
 if __name__ == "__main__":
     # 这里改成你想爬的站
 
-    # run("https://shop.wakilni.com/wp-sitemap.xml", "艺术与娱乐")
-    run("https://sachdevabeauty.com/sitemaps.xml", "艺术与娱乐", config_file="configs/selectors/sachdevabeauty_com.json")
+    run("https://koreanskincare.nl/sitemap.xml", "艺术与娱乐",config_file="configs/selectors/test.json")
+    # run("https://sachdevabeauty.com/sitemaps.xml", "艺术与娱乐", config_file="configs/selectors/sachdevabeauty_com.json")
     # run("https://sachdevabeauty.com/sitemaps.xml", "艺术与娱乐", config_file="configs/selectors/sachdevabeauty_com.json")
     # run("https://www.allbeauty.om/sitemapindex-product.xml.gz", "艺术与娱乐")
