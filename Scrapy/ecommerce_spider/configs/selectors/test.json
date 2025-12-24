@@ -1,0 +1,12 @@
+{
+
+  "title": "//h1//span/text()",
+  "price": "//meta[@property='og:price:amount']/@content ",
+  "price_regex": "[\\d.,]+",
+  "description": "//div[contains(@class, 'tab-popup-content')]",
+  "images": "//meta[@property='og:image']/@content",
+  "currency": "EUR",
+  "breadcrumb_links": "//nav[contains(@class, 'breadcrumb')]//a/text()",
+  "breadcrumb_last": "//nav[contains(@class, 'breadcrumb')]//span/text()",
+  "site_map": "//*[local-name()='sitemap']/*[local-name()='loc'][contains(text(), 'en/sitemap_products_')]/text()"
+}
